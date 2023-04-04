@@ -1,4 +1,4 @@
-from my_lemonade_agent import LemonadeAgent, RandomAgent
+from my_rl_lemonade_agent import LemonadeAgent, RandomAgent
 from lemonade_result import LemonadeResult
 from lemonade_helpers import get_utility
 from sample_agent import StickAgent
