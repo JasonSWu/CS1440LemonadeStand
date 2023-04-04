@@ -27,19 +27,75 @@ class LemonadeAgent(Agent):
         self.count = np.zeros((num_states, 12))
         self.learning_rate = 0.5
         self.opponent_states = [0, 0]
+        self.counter = 0
 
     def get_action(self):
         # TODO: Enter logic to pick next result here
         # this method is ran before update()
         state = self.state # changed
         action = np.argmax(self.q_table[state])
+        self.counter += 1
         return action # returns an int 0-11
 
     def update(self, result: LemonadeResult):
         # TODO: Enter any logic you'd like to include in the update. Please check the base class update_actions before
         # part (a)
-        # update state first
+        # calculate f_i0, f_ij, l_i for all players and threshold B
+        l_1 = 0
+        l_2 = 0
+        f_10 = 0
+        f_12 = 0
+        f_20 = 0
+        f_21 = 0
+        if self.count >= 3:
+            self.threshold = 0
+            Gamma = 0
+            for i in range(2, self.count):
+                Gamma += self.discount_rate**(self.count - 1 - i)
+            for k in range(2, self.count):
+                self.threshold -= (self.discount_rate**(self.count-1-k)/Gamma)
+                l_1 -= (self.discount_rate**(self.count-1-k)/Gamma) * min((self.opponent_1_actions[k] - self.opponent_1_actions[k-1]) % 12, 
+                                                                          (self.opponent_1_actions[k-1] - self.opponent_1_actions[k]) % 12)**self.dev_tolerance
+                l_2 -= (self.discount_rate**(self.count-1-k)/Gamma) * min((self.opponent_2_actions[k] - self.opponent_2_actions[k-1]) % 12, 
+                                                                          (self.opponent_2_actions[k-1] - self.opponent_2_actions[k]) % 12)**self.dev_tolerance
+                f_10 -= (self.discount_rate**(self.count-1-k)/Gamma) * min((self.opponent_1_actions[k] - ((self.my_actions[k-1] + 6) % 12)) % 12, 
+                                                                           (((self.my_actions[k-1] + 6) % 12) - self.opponent_1_actions[k]) % 12)**self.dev_tolerance
+                f_12 -= (self.discount_rate**(self.count-1-k)/Gamma) * min((self.opponent_1_actions[k] - ((self.opponent_2_actions[k-1] + 6) % 12)) % 12, 
+                                                                           (((self.opponent_2_actions[k-1] + 6) % 12) - self.opponent_1_actions[k]) % 12)**self.dev_tolerance
+                f_20 -= (self.discount_rate**(self.count-1-k)/Gamma) * min((self.opponent_2_actions[k] - ((self.my_actions[k-1] + 6) % 12)) % 12, 
+                                                                           (((self.my_actions[k-1] + 6) % 12) - self.opponent_2_actions[k]) % 12)**self.dev_tolerance
+                f_21 -= (self.discount_rate**(self.count-1-k)/Gamma) * min((self.opponent_2_actions[k] - ((self.opponent_1_actions[k-1] + 6) % 12)) % 12, 
+                                                                           (((self.opponent_1_actions[k-1] + 6) % 12) - self.opponent_2_actions[k]) % 12)**self.dev_tolerance
+            self.threshold *= 6**(self.dev_tolerance)
+        else:
+            l_1 = -1
+            l_2 = -1
+            f_10 = -1
+            f_12 = -1
+            f_20 = -1
+            f_21 = -1
+            
+        if f_10 >= self.threshold:
+            self.opponent_states[1] = 0
+        elif f_12 >= self.threshold:
+            self.opponent_states[1] = 1
+        elif l_1 >= self.threshold:
+            self.opponent_states[1] = 2
+        else:
+            self.opponent_states[1] = 3
+
+        if f_20 >= self.threshold:
+            self.opponent_states[2] = 0
+        elif f_21 >= self.threshold:
+            self.opponent_states[2] = 1
+        elif l_2 >= self.threshold:
+            self.opponent_states[2] = 2
+        else:
+            self.opponent_states[2] = 3
+
+        # update state
         old_state = self.state
+        self.state = 0
         l = len(self.opponent_1_actions)
         temp1 = 0
         for i in range(2):
@@ -52,27 +108,24 @@ class LemonadeAgent(Agent):
                 break
             temp2 *= 3
             temp2 += (self.opponent_1_actions[-i] // 4)
-        self.state += temp
-        temp = 0
+        temp3 = 0
         for i in range(1, 3):
             if (i > l):
                 break
-            
-        # calculate f_i0, f_ij, l_i for all players and threshold B
-        self.q_table[self.state, self.my_actions[-1]] = self.learning_rate*(self.my_rewards[-1] + np.max(self.q_table[]))
+            temp3 *= 3
+            temp3 += (self.opponent_2_actions[-i] // 4)
+        self.state = (temp1*9 + temp2)*9 + temp3
+
+        self.q_table[old_state, self.my_actions[-1]] += self.learning_rate*(self.my_rewards[-1] + self.discount_rate * np.max(self.q_table[self.state])
+                                                                             - self.q_table[old_state, self.my_actions[-1]])
         # what if we incorporate opponent states into num_states?
         # their states and last two actions (4*4*3^4*12) - q_table size
 
         # part (b)
-        # update state
-        def update_state():
 
-            pass
         # updating count
         self.count[self.state, self.my_actions[-1]] += 1
         # updating utility u(s,a) += r(a)
-        self.q[self.state] += 
-        #  changing this
         
         pass
 
