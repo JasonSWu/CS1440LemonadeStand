@@ -12,7 +12,7 @@ class LemonadeAgent(Agent):
     def __init__(self, train=True):
         # TODO: Name agent and implement any additional class characteristics you may need
         super().__init__()
-        self.name = 'UConnDub'
+        self.name = 'UConnNatChamps'
         self.num_states = 4*81 # try 4 vs 9
         self.q_table = np.array([[0 for _ in range(6)] for _ in range(self.num_states)], dtype=float)
         self.discount_rate = 0.9
@@ -67,6 +67,7 @@ class LemonadeAgent(Agent):
         # update state
         old_state = self.state
         action = np.argmax(self.q_table[old_state])
+        # modified q_learning
         self.q_table[old_state, action] = self.learning_rate*(self.my_rewards[-1] - 7.5 + self.discount_rate*np.max(self.q_table[self.state])) + (1 - self.learning_rate)*self.q_table[old_state, action]
         # TRY 7.5 vs 8
                                                                              
@@ -86,20 +87,6 @@ class LemonadeAgent(Agent):
             for i, res in enumerate(results):
                 agents[i].update_actions(res)
         self.cleanup()
-
-        # adversary1 = RandomAgent(False)
-        # adversary2 = LemonadeAgent(False)
-
-        # for loop in range(50000): 
-        #     print(50000 + loop)
-        #     my_action = self.choose_next_move()
-        #     self.my_actions.append(my_action)
-        #     actions = [my_action, adversary1.play_action(), adversary2.play_action()]
-        #     utils = get_utility(actions)
-        #     results = [LemonadeResult(actions, utils, i) for i in range(3)]
-        #     for i, res in enumerate(results):
-        #         agents[i].update_actions(res)
-        # self.cleanup()
     
     def choose_next_move(self):
         if np.random.uniform() <= self.exploration_rate:
