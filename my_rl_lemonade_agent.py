@@ -29,7 +29,7 @@ class LemonadeAgent(Agent):
         # TODO: Enter logic to pick next result here
         # this method is ran before update()
         state = self.state # changed
-        action = np.argmax(self.q_table[state])
+        action = np.random.choice(np.flatnonzero(self.q_table[self.state] == self.q_table[self.state].max()))
         self.counter += 1
         # print(f"action counter: {self.counter}")
         return action # returns an int 0-11
@@ -121,27 +121,27 @@ class LemonadeAgent(Agent):
             temp3 += (self.opponent_2_actions[-i] // 4)
         self.state = (temp1*9 + temp2)*9 + temp3
 
-        # print(f"curr state: {self.state}, old state: {old_state}") # we are going to different states
-        # print(f"old value: {self.q_table[old_state, self.my_actions[-1]]}")
-        # print(f"reward: {self.my_rewards[-1]}")
+        print(f"curr state: {self.state}, old state: {old_state}") # we are going to different states
+        print(f"old value: {self.q_table[old_state, self.my_actions[-1]]}")
+        print(f"reward: {self.my_rewards[-1]}")
         # why is this ballooning?
         self.q_table[old_state, self.my_actions[-1]] = self.learning_rate*(self.my_rewards[-1] + self.discount_rate*np.max(self.q_table[self.state])) + (1 - self.learning_rate)*self.q_table[old_state, self.my_actions[-1]]
-        # print(f"max value: {np.max(self.q_table[self.state])}")
-        # print(f"new value: {self.q_table[old_state, self.my_actions[-1]]}")
+        print(f"max value: {np.max(self.q_table[self.state])}")
+        print(f"new value: {self.q_table[old_state, self.my_actions[-1]]}")
         
                                                                              
     def train(self):
         # play against two versions of itself
         # play 100,000 rounds then reset relavent variables
         print("training")
-        adversary1 = LemonadeAgent(False)
+        adversary1 = RandomAgent()
         print("no train")
         adversary2 = StickAgent(4)
         print("no train")
         self.threshold = 0
         agents = [self, adversary1, adversary2]
 
-        for loop in range(100): # change back
+        for loop in range(10000): # change back
             print(loop)
             my_action = np.random.choice(range(12))
             self.my_actions.append(my_action)
@@ -173,8 +173,8 @@ class LemonadeAgent(Agent):
         
 
 class RandomAgent(LemonadeAgent):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, train=False):
+        super().__init__(False)
         self.name = 'Random Agent'
 
     @staticmethod
