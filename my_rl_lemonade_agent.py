@@ -13,22 +13,11 @@ class LemonadeAgent(Agent):
         super().__init__()
         self.name = 'UConnDub'
         self.num_states = 1296
-        # 12 is possible actions
-        # what is s?
-        # altered self.q_table
-        # (12, 12) is (initial_state_score, num_possible_actions)
         self.q_table = np.array([[12 for _ in range(12)] for _ in range(self.num_states)])
-        # self.q_table = {s: [starting_val for _ in range(12)] for _ in range(num_states)} # edited
-        # self.move = random.randint(0, 11) # first move
         self.discount_rate = 0.9
-        # self.scale = scale
-        # self.epsilon = epsilon 
-        # epsilon can be chosen arbitrarily small to be optimistic in the face of uncertainty.
         self.dev_tolerance = 2
-        # self.kappa = kappa # currently arbitrary
         self.state = 0
         self.threshold = 0
-        # self.count = np.zeros((self.num_states, 12))
         self.learning_rate = 0.5
         self.opponent_states = [0, 0]
         self.counter = 0
@@ -124,25 +113,18 @@ class LemonadeAgent(Agent):
 
         self.q_table[old_state, self.my_actions[-1]] += self.learning_rate*(self.my_rewards[-1] + self.discount_rate * np.max(self.q_table[self.state])
                                                                              - self.q_table[old_state, self.my_actions[-1]])
-        # what if we incorporate opponent states into num_states?
-        # their states and last two actions (4*4*3^4*12) - q_table size
-
-        # part (b)
-
-        # updating count
-        # self.count[self.state, self.my_actions[-1]] += 1
-        # updating utility u(s,a) += r(a)
-
     def train(self):
         # play against two versions of itself
         # play 100,000 rounds then reset relavent variables
+        print("training")
         adversary1 = LemonadeAgent(False)
+        print("no train")
         adversary2 = LemonadeAgent(False)
+        print("no train")
         self.threshold = 0
         agents = [self, adversary1, adversary2]
 
         for loop in range(100000):
-            print(loop)
             my_action = np.random.choice(range(12))
             self.my_actions.append(my_action)
             actions = [my_action, adversary1.play_action(), adversary2.play_action()]
@@ -150,13 +132,25 @@ class LemonadeAgent(Agent):
             results = [LemonadeResult(actions, utils, i) for i in range(3)]
             for agent, result in zip(agents, results):
                 agent.update_actions(result)
-        self.new_game()
+        print("done")
         self.cleanup()
     
     def cleanup(self):
         qtable = self.q_table
-        self.__init__(False)
-        self.q_table = qtable
+        self.my_actions = []
+        self.my_rewards = []
+        self.opponent_1_actions = []
+        self.opponent_2_actions = []
+        self.name = 'UConnDub'
+        self.num_states = 1296
+        self.discount_rate = 0.9
+        self.dev_tolerance = 2
+        self.state = 0
+        self.threshold = 0
+        self.learning_rate = 0.5
+        self.opponent_states = [0, 0]
+        self.counter = 0
+
 
 
 
