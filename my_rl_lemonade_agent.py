@@ -5,26 +5,27 @@ import numpy as np
 
 
 class LemonadeAgent(Agent):
-    def __init__(self, num_states, starting_val, discount_rate, scale, epsilon, dev_tolerance, kappa):
+    def __init__(self):
         # TODO: Name agent and implement any additional class characteristics you may need
         super().__init__()
         self.name = '------'
+        self.num_states = 1296
         # 12 is possible actions
         # what is s?
         # altered self.q_table
         # (12, 12) is (initial_state_score, num_possible_actions)
-        self.q_table = np.array([[12 for _ in range(12)] for _ in range(num_states)])
+        self.q_table = np.array([[12 for _ in range(12)] for _ in range(self.num_states)])
         # self.q_table = {s: [starting_val for _ in range(12)] for _ in range(num_states)} # edited
         # self.move = random.randint(0, 11) # first move
-        self.discount_rate = discount_rate
-        self.scale = scale
-        self.epsilon = epsilon 
+        self.discount_rate = 0.9
+        # self.scale = scale
+        # self.epsilon = epsilon 
         # epsilon can be chosen arbitrarily small to be optimistic in the face of uncertainty.
-        self.dev_tolerance = dev_tolerance
-        self.kappa = kappa # currently arbitrary
+        self.dev_tolerance = 2
+        # self.kappa = kappa # currently arbitrary
         self.state = 0
         self.threshold = 0
-        self.count = np.zeros((num_states, 12))
+        # self.count = np.zeros((self.num_states, 12))
         self.learning_rate = 0.5
         self.opponent_states = [0, 0]
         self.counter = 0
@@ -47,11 +48,11 @@ class LemonadeAgent(Agent):
         f_12 = 0
         f_20 = 0
         f_21 = 0
-        if self.count >= 3:
+        if self.counter >= 3:
             self.threshold = 0
             Gamma = 0
             for i in range(2, self.count):
-                Gamma += self.discount_rate**(self.count - 1 - i)
+                Gamma += self.discount_rate**(self.counter - 1 - i)
             for k in range(2, self.count):
                 self.threshold -= (self.discount_rate**(self.count-1-k)/Gamma)
                 l_1 -= (self.discount_rate**(self.count-1-k)/Gamma) * min((self.opponent_1_actions[k] - self.opponent_1_actions[k-1]) % 12, 
@@ -124,11 +125,8 @@ class LemonadeAgent(Agent):
         # part (b)
 
         # updating count
-        self.count[self.state, self.my_actions[-1]] += 1
+        # self.count[self.state, self.my_actions[-1]] += 1
         # updating utility u(s,a) += r(a)
-        
-        pass
-
 
     def train(self):
         # play against two versions of itself
